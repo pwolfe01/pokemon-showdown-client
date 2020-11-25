@@ -543,7 +543,7 @@ abstract class BattleTypedSearch<T extends SearchType> {
 	 */
 	set: PokemonSet | null = null;
 
-	protected formatType: 'doubles' | 'letsgo' | 'metronome' | 'natdex' | 'nfe' | 'dlc1' | 'dlc1doubles' | null = null;
+	protected formatType: 'doubles' | 'letsgo' | 'metronome' | 'natdex' | 'nfe' | 'dlc1' | 'dlc1doubles' | 'emeraldkaizo' | null = null;
 
 	/**
 	 * Cached copy of what the results list would be with only base filters
@@ -562,14 +562,16 @@ abstract class BattleTypedSearch<T extends SearchType> {
 
 	constructor(searchType: T, format = '' as ID, speciesOrSet: ID | PokemonSet = '' as ID) {
 		this.searchType = searchType;
-
+		console.log(`format: ${format}`)
 		this.baseResults = null;
 		this.baseIllegalResults = null;
-
 		if (format.slice(0, 3) === 'gen') {
 			const gen = (Number(format.charAt(3)) || 6);
 			format = (format.slice(4) || 'customgame') as ID;
-			this.dex = Dex.forGen(gen);
+			console.log(`Format ${format} has gen ${gen}`);
+			if (format.includes('emeraldkaizo')) {
+				this.dex = Dex.forGen('emeraldkaizo');
+			} else { this.dex = Dex.forGen(gen); }	
 		} else if (!format) {
 			this.dex = Dex;
 		}
@@ -585,6 +587,7 @@ abstract class BattleTypedSearch<T extends SearchType> {
 		if (format === 'vgc2020') this.formatType = 'dlc1doubles';
 		if (format.includes('doubles') && this.dex.gen > 4 && !this.formatType) this.formatType = 'doubles';
 		if (format.includes('letsgo')) this.formatType = 'letsgo';
+		if (format.includes('emeraldkaizo')) this.formatType = 'emeraldkaizo';
 		if (format.includes('nationaldex')) {
 			format = format.slice(11) as ID;
 			this.formatType = 'natdex';
@@ -600,7 +603,8 @@ abstract class BattleTypedSearch<T extends SearchType> {
 			if (!format) format = 'ou' as ID;
 		}
 		this.format = format;
-
+		console.log(`format2: ${format}`);
+		console.log(`formatType: ${this.formatType}`);
 		this.species = '' as ID;
 		this.set = null;
 		if (typeof speciesOrSet === 'string') {
@@ -747,6 +751,7 @@ abstract class BattleTypedSearch<T extends SearchType> {
 		let table = window.BattleTeambuilderTable;
 		const tableKey = this.formatType === 'doubles' ? `gen${this.dex.gen}doubles` :
 			this.formatType === 'letsgo' ? 'letsgo' :
+			this.formatType === 'emeraldkaizo' ? 'emeraldkaizo' :
 			this.formatType === 'nfe' ? `gen${this.dex.gen}nfe` :
 			this.formatType === 'dlc1' ? 'gen8dlc1' :
 			this.formatType === 'dlc1doubles' ? 'gen8dlc1doubles' :
@@ -850,6 +855,9 @@ class BattlePokemonSearch extends BattleTypedSearch<'pokemon'> {
 			table = table['gen' + dex.gen];
 		} else if (this.formatType === 'letsgo') {
 			table = table['letsgo'];
+		} else if (this.formatType === 'emeraldkaizo') {
+			console.log(`Using emeraldkaizo table`);
+			table = table['emeraldkaizo'];
 		} else if (this.formatType === 'natdex') {
 			table = table['natdex'];
 		} else if (this.formatType === 'metronome') {
@@ -896,6 +904,7 @@ class BattlePokemonSearch extends BattleTypedSearch<'pokemon'> {
 		else if (format === 'doublesuu') tierSet = tierSet.slice(slices.DUU);
 		else if (format === 'doublesnu') tierSet = tierSet.slice(slices.DNU || slices.DUU);
 		else if (this.formatType === 'letsgo') tierSet = tierSet.slice(slices.Uber);
+		else if (this.formatType === 'emeraldkaizo') tierSet = tierSet.slice(slices.OU);
 		// else if (isDoublesOrBS) tierSet = tierSet;
 		else if (!isDoublesOrBS) {
 			tierSet = [
@@ -1354,6 +1363,7 @@ class BattleMoveSearch extends BattleTypedSearch<'move'> {
 		while (learnsetid) {
 			let learnset = BattleTeambuilderTable.learnsets[learnsetid];
 			if (this.formatType === 'letsgo') learnset = BattleTeambuilderTable['letsgo'].learnsets[learnsetid];
+			if (this.formatType === 'emeraldkaizo') learnset = BattleTeambuilderTable['emeraldkaizo'].learnsets[learnsetid];
 			if (this.formatType?.startsWith('dlc1')) learnset = BattleTeambuilderTable['gen8dlc1'].learnsets[learnsetid];
 			if (learnset) {
 				for (let moveid in learnset) {

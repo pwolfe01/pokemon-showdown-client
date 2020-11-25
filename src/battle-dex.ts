@@ -205,11 +205,21 @@ const Dex = new class implements ModdedDex {
 		this.moddedDexes[modid] = new ModdedDex(modid);
 		return this.moddedDexes[modid];
 	}
-	forGen(gen: number) {
+	forGen(gen: any) {
+		console.log("IN FOR GEN with NUM ARG");
+		if (typeof gen === 'string' && gen.includes('emeralkaizo')) {
+			console.log('getting emeraldkaizo dex');
+			return this.mod('emeraldkaizo' as ID)
+		}
 		if (!gen) return this;
 		return this.mod(`gen${gen}` as ID);
 	}
 
+	forEmeraldKaizo() {
+		console.log("HERE");
+		return this.mod('emeraldkaizo' as ID);
+	}
+	
 	resolveAvatar(avatar: string): string {
 		if (window.BattleAvatarNumbers && avatar in BattleAvatarNumbers) {
 			avatar = BattleAvatarNumbers[avatar];
@@ -823,6 +833,12 @@ class ModdedDex {
 	};
 	pokeballs: string[] | null = null;
 	constructor(modid: ID) {
+		console.log(`getting dex for modid: ${modid}`);
+		if (modid.includes('emeraldkaizo')) {
+			this.gen = 3;
+			this.modid = 'emeraldkaizo' as ID;
+			return;
+		}
 		this.modid = modid;
 		let gen = parseInt(modid.slice(3), 10);
 		if (!modid.startsWith('gen') || !gen) throw new Error("Unsupported modid");

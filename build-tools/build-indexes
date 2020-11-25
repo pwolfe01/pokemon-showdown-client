@@ -8,8 +8,8 @@ const child_process = require("child_process");
 const rootDir = path.resolve(__dirname, '..');
 process.chdir(rootDir);
 
-if (!fs.existsSync('data/pokemon-showdown')) {
-	child_process.execSync('git clone https://github.com/smogon/pokemon-showdown.git', {
+if (!fs.existsSync('data/pokemon-showdown')) {	
+	child_process.execSync('git clone https://github.com/pwolfe01/pokemon-showdown.git', {
 		cwd: 'data',
 	});
 }
@@ -287,7 +287,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	const GENS = [8, 7, 6, 5, 4, 3, 2, 1];
 	const DOUBLES = GENS.filter(x => x > 2).map(num => -num);
 	const NFE = GENS.map(num => num + 0.3);
-	const OTHER = [8.4, 8.2, 8.1, -8.4, 7.1, -7.5];
+	const OTHER = [8.4, 8.2, 8.1, -8.4, 7.1, -7.5, 3.9];
 
 	// process.stdout.write("\n  ");
 	for (const genIdent of [...GENS, ...DOUBLES, ...NFE, ...OTHER]) {
@@ -298,8 +298,9 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 		const isNatDex = (genIdent === 8.1);
 		const isDoubles = (genIdent < 0);
 		const isVGC = (genIdent === -7.5);
+		const isEmeraldKaizo = (genIdent === 3.9)
 		const genNum = Math.floor(isDoubles ? -genIdent : genIdent);
-		const gen = isLetsGo ? 'letsgo' : 'gen' + genNum + (isDLC1 ? 'dlc1' : '');
+		const gen = isLetsGo ? 'letsgo' : isEmeraldKaizo ? 'emeraldkaizo' : 'gen' + genNum + (isDLC1 ? 'dlc1' : '');
 		// process.stdout.write("" + gen + (isDoubles ? " doubles" : "") + "... ");
 		const pokemon = Object.keys(Dex.data.Pokedex);
 		pokemon.sort();
@@ -482,6 +483,12 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			BattleTeambuilderTable[gen + 'doubles'].tiers = tiers;
 			BattleTeambuilderTable[gen + 'doubles'].overrideTier = overrideTier;
 			BattleTeambuilderTable[gen + 'doubles'].formatSlices = formatSlices;
+		} else if (isEmeraldKaizo) {
+			BattleTeambuilderTable['emeraldkaizo'] = {};
+			BattleTeambuilderTable['emeraldkaizo'].learnsets = {};
+			BattleTeambuilderTable['emeraldkaizo'].tiers = tiers;
+			BattleTeambuilderTable['emeraldkaizo'].overrideTier = overrideTier;
+			BattleTeambuilderTable['emeraldkaizo'].formatSlices = formatSlices;				
 		} else if (gen === 'gen8') {
 			BattleTeambuilderTable.tiers = tiers;
 			BattleTeambuilderTable.items = items;
@@ -519,7 +526,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			if (gen === 'gen1') {
 				return ["Uber", "OU", "UUBL", "UU", "NFE", "LC Uber", "LC"];
 			}
-			if (gen === 'gen2' || gen === 'gen3') {
+			if (gen === 'gen2' || gen === 'gen3' || isEmeraldKaizo) {
 				return ["Uber", "OU", "UUBL", "UU", "NUBL", "NU", "PUBL", "PU", "NFE", "LC Uber", "LC"];
 			}
 			if (gen === 'gen4') {
@@ -848,6 +855,19 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			if (minGen === 1) learnsets[id][moveid] = '12' + learnsets[id][moveid];
 		}
 	}
+	const EKLearnsets = Dex.mod('emeraldkaizo').data.Learnsets;
+	for (const id in EKLearnsets) {
+		const species = Dex.mod('emeraldkaizo').getSpecies(id);
+		const baseSpecies = Dex.mod('emeraldkaizo').getSpecies(species.baseSpecies);
+		const validNum = (baseSpecies.num <= 389 && baseSpecies.num >= 1);
+		if (!validNum) continue;
+		if (species.forme && !['Alola', 'Mega', 'Mega-X', 'Mega-Y', 'Starter'].includes(species.forme)) continue;
+		const learnset = EKLearnsets[id].learnset;
+		BattleTeambuilderTable['emeraldkaizo'].learnsets[id] = {};
+		for (const moveid in learnset) {
+			BattleTeambuilderTable['emeraldkaizo'].learnsets[id][moveid] = '3';
+		}
+	}
 	const LGLearnsets = Dex.mod('letsgo').data.Learnsets;
 	for (const id in LGLearnsets) {
 		const species = Dex.mod('letsgo').getSpecies(id);
@@ -907,8 +927,12 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	// Past gen table
 	//
 
-	for (const genNum of [7, 6, 5, 4, 3, 2, 1]) {
-		const gen = 'gen' + genNum;
+	for (var genNum of [7, 6, 5, 4, 3.9, 3, 2, 1]) {
+		var gen = 'gen' + genNum;
+		if (genNum === 3.9) {
+			gen = 'emeraldkaizo';
+			genNum = 3;
+		}
 		const genData = Dex.mod(gen).data;
 		const nextGenData = Dex.mod('gen' + (genNum + 1)).data;
 		const overrideStats = {};

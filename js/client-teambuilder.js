@@ -1148,6 +1148,7 @@
 		renderSet: function (set, i) {
 			var species = Dex.getSpecies(set.species);
 			var isLetsGo = this.curTeam.format.includes('letsgo');
+			var isEmeraldKaizo = this.curTeam.format.includes('emeraldkaizo');
 			var isNatDex = this.curTeam.format.includes('nationaldex');
 			var buf = '<li value="' + i + '">';
 			if (!set.species) {
@@ -1767,7 +1768,7 @@
 
 			var stats = {hp:'', atk:'', def:'', spa:'', spd:'', spe:''};
 
-			var supportsEVs = !this.curTeam.format.includes('letsgo');
+			var supportsEVs = !(this.curTeam.format.includes('letsgo') || this.curTeam.format.includes('emeraldKaizo'));
 
 			// stat cell
 			var buf = '<span class="statrow statrow-head"><label></label> <span class="statgraph"></span> <em>' + (supportsEVs ? 'EV' : 'AV') + '</em></span>';
@@ -2028,8 +2029,8 @@
 			if (!set) return;
 			var nature = BattleNatures[set.nature || 'Serious'];
 			if (!nature) nature = {};
+			var supportsEVs = !(this.curTeam.format.includes('letsgo') || this.curTeam.format.includes('emeraldKaizo'));
 
-			var supportsEVs = !this.curTeam.format.includes('letsgo');
 			// var supportsAVs = !supportsEVs && this.curTeam.format.endsWith('norestrictions');
 			var defaultEV = this.curTeam.gen <= 2 ? 252 : 0;
 			var maxEV = supportsEVs ? 252 : 200;
@@ -2280,7 +2281,7 @@
 			var inputName = '';
 			inputName = e.currentTarget.name;
 			var val = Math.abs(parseInt(e.currentTarget.value, 10));
-			var supportsEVs = !this.curTeam.format.includes('letsgo');
+			var supportsEVs = !(this.curTeam.format.includes('letsgo') || this.curTeam.format.includes('emeraldKaizo'));
 			var supportsAVs = !supportsEVs && this.curTeam.format.endsWith('norestrictions');
 			var set = this.curSet;
 			if (!set) return;
@@ -2401,6 +2402,7 @@
 			var val = +slider.value;
 			var originalVal = val;
 			var result = this.getStat(stat, set, val);
+			var supportsEVs = !(this.curTeam.format.includes('letsgo') || this.curTeam.format.includes('emeraldkaizo'));
 			var supportsEVs = !this.curTeam.format.includes('letsgo');
 			var supportsAVs = !supportsEVs && this.curTeam.format.endsWith('norestrictions');
 			if (supportsEVs) {
@@ -2504,6 +2506,7 @@
 			var buf = '';
 			var set = this.curSet;
 			var isLetsGo = this.curTeam.format.includes('letsgo');
+			var isEmeraldKaizo = this.curTeam.format.includes('emeraldkaizo')
 			var isNatDex = this.curTeam.gen === 8 && this.curTeam.format.includes('nationaldex');
 			var species = Dex.getSpecies(set.species);
 			if (!set) return;
@@ -2588,6 +2591,7 @@
 			if (!set) return;
 			var species = Dex.getSpecies(set.species);
 			var isLetsGo = this.curTeam.format.includes('letsgo');
+			var isEmeraldKaizo = this.curTeam.format.includes('emeraldkaizo');
 			var isNatDex = this.curTeam.format.includes('nationaldex');
 
 			// level
@@ -3150,7 +3154,7 @@
 		// Stat calculator
 
 		getStat: function (stat, set, evOverride, natureOverride) {
-			var supportsEVs = !this.curTeam.format.includes('letsgo');
+			var supportsEVs = !(this.curTeam.format.includes('letsgo') || this.curTeam.format.includes('emeraldkaizo'));
 			var supportsAVs = !supportsEVs;
 			if (!set) set = this.curSet;
 			if (!set) return 0;
@@ -3208,6 +3212,7 @@
 		getGen: function (format) {
 			format = '' + format;
 			if (!format) return 7;
+			if (format.includes('emeraldkaizo')) return 3;
 			if (format.substr(0, 3) !== 'gen') return 6;
 			return parseInt(format.substr(3, 1), 10) || 6;
 		}
