@@ -12,9 +12,9 @@
     "lint": "eslint --config=.eslintrc.js --cache --cache-file=eslint-cache/base js/ && eslint --config=build-tools/.eslintrc.js --cache --cache-file=eslint-cache/build build-tools/update build-tools/build-indexes && tslint --project .",
     "test": "npm run lint && tsc && node build && mocha test/*.js",
     "fix": "eslint --config=.eslintrc.js --fix js/ && eslint --config=build-tools/.eslintrc.js --fix build-tools/update build-tools/build-indexes",
-    "build": "node build",
+    "build": "node build full",
     "build-full": "node build full",
-    "start": "node build full && ./data/pokemon-showdown/pokemon-showdown start"
+    "start": "./data/pokemon-showdown/pokemon-showdown start"
   },
   "dependencies": {
     "@babel/cli": "^7.2.3",
